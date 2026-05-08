@@ -2,10 +2,15 @@ name: Daily Brief
 
 on:
   schedule:
-    # 7am Pacific year-round (DST-aware via two crons + a sentinel check below).
-    # 14:00 UTC = 7am PDT (Mar–Nov)  · 15:00 UTC = 7am PST (Nov–Mar)
-    - cron: "0 14 * * *"
-    - cron: "0 15 * * *"
+    # Multiple cron times in the 7am PT window for resilience.
+    # GitHub Actions sometimes skips/delays scheduled runs (especially on new repos).
+    # The sentinel below ensures only one delivery happens per PT calendar day.
+    - cron: "0 14 * * *"   # 7:00 PDT
+    - cron: "15 14 * * *"  # 7:15 PDT
+    - cron: "30 14 * * *"  # 7:30 PDT
+    - cron: "0 15 * * *"   # 7:00 PST (winter)
+    - cron: "15 15 * * *"  # 7:15 PST
+    - cron: "30 15 * * *"  # 7:30 PST
   workflow_dispatch:
     inputs:
       dry_run:
@@ -28,24 +33,42 @@ jobs:
     timeout-minutes: 25
 
     steps:
-      - name: Check DST sentinel — only run when local clock = 7am
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 10  # need recent history to check bot's last commit
+
+      - name: Decide whether to run
         id: dst
         env:
           TZ: America/Los_Angeles
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "Manual trigger — running."
             echo "should_run=true" >> "$GITHUB_OUTPUT"; exit 0
           fi
+
           local_hour=$(TZ=America/Los_Angeles date +%H)
           echo "Local PT hour: $local_hour"
-          if [ "$local_hour" = "07" ]; then
-            echo "should_run=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "should_run=false" >> "$GITHUB_OUTPUT"
+          if [ "$local_hour" != "07" ]; then
+            echo "Not 7am PT — skipping."
+            echo "should_run=false" >> "$GITHUB_OUTPUT"; exit 0
           fi
 
-      - uses: actions/checkout@v4
-        if: steps.dst.outputs.should_run == 'true'
+          # Skip if a successful delivery already happened today (PT calendar day).
+          # We detect a delivery by the daily-brief-bot's commit pushing dedup state.
+          today_pt=$(TZ=America/Los_Angeles date +%Y-%m-%d)
+          last_bot_commit=$(git log --author="daily-brief-bot" --format="%aI" -1 2>/dev/null || echo "")
+          if [ -n "$last_bot_commit" ]; then
+            last_bot_pt=$(TZ=America/Los_Angeles date -d "$last_bot_commit" +%Y-%m-%d)
+            echo "Last bot commit PT date: $last_bot_pt; today PT: $today_pt"
+            if [ "$today_pt" = "$last_bot_pt" ]; then
+              echo "Already delivered today — skipping."
+              echo "should_run=false" >> "$GITHUB_OUTPUT"; exit 0
+            fi
+          fi
+
+          echo "Will run."
+          echo "should_run=true" >> "$GITHUB_OUTPUT"
 
       - uses: actions/setup-python@v5
         if: steps.dst.outputs.should_run == 'true'
