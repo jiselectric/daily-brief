@@ -1,0 +1,43 @@
+# Topic weights drive ranking. Higher = more likely to be picked for the daily brief.
+# Range 0.0–1.0. Edit freely.
+topics:
+  politics: 0.85
+  economics: 1.00
+  business: 0.90
+  ai: 1.00
+  technology: 0.95
+  startups: 0.85
+
+# Keywords boost scoring when found in headline/summary. Add things you specifically care about.
+boost_keywords:
+  - federal reserve
+  - interest rates
+  - inflation
+  - semiconductor
+  - nvidia
+  - openai
+  - anthropic
+  - chip
+  - gpu
+  - llm
+  - foundation model
+  - venture capital
+  - ipo
+  - antitrust
+  - regulation
+  - geopolitics
+  - china
+  - taiwan
+  - europe
+
+# Negative keywords reduce scoring (or filter out entirely if score drops below threshold).
+exclude_keywords:
+  - horoscope
+  - celebrity gossip
+  - reality tv
+
+# How many stories to pull into the daily brief.
+brief:
+  deep_dives: 5        # full multi-source 10–15min synthesized pieces
+  short_summaries: 10  # ~150-word skim summaries
+  headlines_only: 15   # title + source + link, for the bottom skim list

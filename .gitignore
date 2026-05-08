@@ -1,0 +1,17 @@
+.env
+.env.local
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.venv/
+venv/
+*.egg-info/
+build/
+dist/
+.DS_Store
+data/*.db-journal
+# Keep data/brief.db tracked — it's our cross-run dedup state for the cron.
+out/
+.vscode/
+.idea/

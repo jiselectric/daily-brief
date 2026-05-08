@@ -1,0 +1,113 @@
+name: Daily Brief
+
+on:
+  schedule:
+    # 7am Pacific year-round (DST-aware via two crons + a sentinel check below).
+    # 14:00 UTC = 7am PDT (Mar–Nov)  · 15:00 UTC = 7am PST (Nov–Mar)
+    - cron: "0 14 * * *"
+    - cron: "0 15 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (no Claude calls, no delivery)"
+        required: false
+        default: "false"
+
+permissions:
+  contents: write   # so we can commit dedup state + GH Pages
+  pages: write
+  id-token: write
+
+concurrency:
+  group: daily-brief
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Check DST sentinel — only run when local clock = 7am
+        id: dst
+        env:
+          TZ: America/Los_Angeles
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          local_hour=$(TZ=America/Los_Angeles date +%H)
+          echo "Local PT hour: $local_hour"
+          if [ "$local_hour" = "07" ]; then
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.dst.outputs.should_run == 'true'
+
+      - uses: actions/setup-python@v5
+        if: steps.dst.outputs.should_run == 'true'
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install
+        if: steps.dst.outputs.should_run == 'true'
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -e .
+
+      - name: Run daily brief
+        if: steps.dst.outputs.should_run == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_MODEL: ${{ vars.ANTHROPIC_MODEL || 'claude-sonnet-4-6' }}
+          NYT_API_KEY: ${{ secrets.NYT_API_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          RESEND_FROM: ${{ vars.RESEND_FROM || 'Daily Brief <onboarding@resend.dev>' }}
+          TO_EMAIL: ${{ secrets.TO_EMAIL }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          TIMEZONE: America/Los_Angeles
+          DEEP_DIVE_BASE_URL: ${{ vars.DEEP_DIVE_BASE_URL }}
+        run: |
+          DRY="${{ github.event.inputs.dry_run }}"
+          if [ "$DRY" = "true" ]; then
+            python -m daily_brief.main --dry-run -v
+          else
+            python -m daily_brief.main -v
+          fi
+
+      - name: Commit dedup state
+        if: steps.dst.outputs.should_run == 'true'
+        run: |
+          git config user.name "daily-brief-bot"
+          git config user.email "daily-brief-bot@users.noreply.github.com"
+          git add data/brief.db
+          if git diff --cached --quiet; then
+            echo "No DB changes to commit."
+          else
+            git commit -m "chore: update dedup state $(date -u +%Y-%m-%dT%H:%MZ)"
+            git push
+          fi
+
+      - name: Upload Pages artifact
+        if: steps.dst.outputs.should_run == 'true' && hashFiles('out/index.html') != ''
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: out
+
+  deploy-pages:
+    needs: build
+    runs-on: ubuntu-latest
+    if: needs.build.result == 'success'
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+        continue-on-error: true
