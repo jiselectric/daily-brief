@@ -29,9 +29,16 @@ def _parse_date(entry) -> datetime | None:
     return None
 
 
+_BROWSER_UA = (
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+    "AppleWebKit/605.1.15 (KHTML, like Gecko) "
+    "Version/17.0 Safari/605.1.15"
+)
+
+
 def fetch_rss(source: RSSSource, limit: int = 40) -> list[Article]:
     log.info("RSS: fetching %s", source.name)
-    parsed = feedparser.parse(source.url, request_headers={"User-Agent": "daily-brief/0.1"})
+    parsed = feedparser.parse(source.url, request_headers={"User-Agent": _BROWSER_UA})
     if parsed.bozo and not parsed.entries:
         log.warning("RSS: %s failed to parse: %s", source.name, parsed.bozo_exception)
         return []

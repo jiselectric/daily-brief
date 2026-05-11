@@ -16,11 +16,7 @@ rss:
     url: https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml
     weight: 1.0
     topics: [world, politics, business]
-  - id: reuters-world
-    name: Reuters World
-    url: https://feeds.reuters.com/Reuters/worldNews
-    weight: 0.95
-    topics: [world]
+  # Reuters dropped public RSS — world coverage now via NYT/BBC/AP/FT.
   - id: ap-top
     name: AP Top News
     url: https://rsshub.app/apnews/topics/apf-topnews
@@ -46,11 +42,7 @@ rss:
     url: https://warontherocks.com/feed/
     weight: 0.95
     topics: [world, politics]
-  - id: lawfare
-    name: Lawfare
-    url: https://www.lawfaremedia.org/feed
-    weight: 0.9
-    topics: [world, politics, opinion]
+  # Lawfare bot-blocks feed reqs; will retry with a different fetch path in v0.8.
   - id: sinocism
     name: Sinocism (Bill Bishop)
     url: https://sinocism.com/feed
@@ -67,7 +59,7 @@ rss:
   # ============================================================
   - id: politico
     name: Politico
-    url: https://www.politico.com/rss/politicopicks.xml
+    url: https://rss.politico.com/politics-news.xml
     weight: 0.85
     topics: [politics]
   - id: bloomberg-politics
@@ -153,11 +145,8 @@ rss:
     url: https://feeds.bloomberg.com/markets/news.rss
     weight: 0.95
     topics: [markets]
-  - id: bloomberg-opinion
-    name: Bloomberg Opinion (incl. Money Stuff)
-    url: https://feeds.bloomberg.com/opinion/news.rss
-    weight: 0.95
-    topics: [markets, opinion, business]
+  # Bloomberg Opinion RSS retired — Matt Levine's Money Stuff now distribution
+  # is email-only (will land via v1.5 subscriber inbox).
   - id: thediff
     name: The Diff (Byrne Hobart)
     url: https://www.thediff.co/feed
@@ -209,7 +198,7 @@ rss:
     topics: [business, startups]
   - id: bits-about-money
     name: Bits about Money (patio11)
-    url: https://www.bitsaboutmoney.com/feed
+    url: https://www.bitsaboutmoney.com/archive/rss
     weight: 0.9
     topics: [business, technology]
   - id: lennys-newsletter
@@ -251,16 +240,9 @@ rss:
     url: https://www.transformernews.ai/feed
     weight: 0.85
     topics: [ai]
-  - id: epoch-ai
-    name: Epoch AI
-    url: https://epochai.org/blog/feed
-    weight: 0.85
-    topics: [ai]
-  - id: anthropic-news
-    name: Anthropic
-    url: https://www.anthropic.com/news/rss.xml
-    weight: 0.9
-    topics: [ai]
+  # Epoch AI doesn't expose RSS publicly — content occasionally surfaces via HN.
+  # Anthropic news RSS no longer exists — their announcements get cross-posted
+  # by Import AI, Interconnects, Latent Space anyway.
   - id: openai-news
     name: OpenAI
     url: https://openai.com/news/rss.xml
@@ -339,16 +321,8 @@ rss:
     url: https://www.newcomer.co/feed
     weight: 0.9
     topics: [startups]
-  - id: a16z
-    name: a16z
-    url: https://a16z.com/feed/
-    weight: 0.7
-    topics: [startups, ai]
-  - id: first-round-review
-    name: First Round Review
-    url: https://review.firstround.com/feed.xml
-    weight: 0.75
-    topics: [startups]
+  # a16z removed their RSS feed entirely. First Round Review same.
+  # Newcomer + Crunchbase News cover the startup beat for now.
 
   # ============================================================
   # SCIENCE
@@ -360,7 +334,7 @@ rss:
     topics: [science]
   - id: works-in-progress
     name: Works in Progress
-    url: https://worksinprogress.co/feed/
+    url: https://www.worksinprogress.news/feed
     weight: 0.9
     topics: [science]
   - id: construction-physics
@@ -375,7 +349,7 @@ rss:
     topics: [science, opinion]
   - id: in-the-pipeline
     name: In the Pipeline (Derek Lowe)
-    url: https://www.science.org/blog/pipeline/feed
+    url: https://www.science.org/blogs/pipeline/feed
     weight: 0.85
     topics: [science]
 
