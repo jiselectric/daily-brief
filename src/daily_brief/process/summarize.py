@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import json
 import logging
-import re
 from concurrent.futures import ThreadPoolExecutor
 
 from anthropic import Anthropic
@@ -14,10 +12,68 @@ from ..models import Cluster, WrittenStory
 log = logging.getLogger(__name__)
 
 
-VALID_TOPICS = {
+VALID_TOPICS = [
     "world", "politics", "economics", "markets",
     "business", "ai", "technology", "startups",
     "science", "opinion",
+]
+
+
+# Tool schemas force Claude to return structured data — no JSON parsing,
+# no malformed-output failures.
+SHORT_TOOL = {
+    "name": "publish_short_summary",
+    "description": "Submit a ~150-word skim summary for the daily brief.",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "headline": {
+                "type": "string",
+                "description": "Under 90 chars, declarative not clickbait.",
+            },
+            "short_summary": {
+                "type": "string",
+                "description": (
+                    "Plain text, ~150 words, with Unicode superscripts ¹²³ "
+                    "for inline citations. No markdown. No source list — "
+                    "citations only."
+                ),
+            },
+            "topic": {
+                "type": "string",
+                "enum": VALID_TOPICS,
+            },
+        },
+        "required": ["headline", "short_summary", "topic"],
+    },
+}
+
+DEEP_TOOL = {
+    "name": "publish_deep_dive",
+    "description": "Submit a 1200-1700 word deep-dive analytical piece.",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "headline": {"type": "string", "description": "Under 90 chars."},
+            "short_summary": {
+                "type": "string",
+                "description": "~150 words plain text with Unicode superscripts ¹²³ for citations.",
+            },
+            "deep_dive_html": {
+                "type": "string",
+                "description": (
+                    "HTML body for the deep dive page. Use <p>, <h3>, <ul>, "
+                    "<li>, <strong>, <em>, and <sup>N</sup> tags for citations. "
+                    "Do NOT include <html>, <head>, <body>, or source list."
+                ),
+            },
+            "topic": {
+                "type": "string",
+                "enum": VALID_TOPICS,
+            },
+        },
+        "required": ["headline", "short_summary", "deep_dive_html", "topic"],
+    },
 }
 
 
@@ -114,12 +170,7 @@ For each story cluster, write a ~150-word skim summary that:
 - Notes contradictions if sources disagree, using the disagreement pattern above.
 - No filler ("looks at", "discusses", "explores").
 
-Return ONLY valid JSON in this shape (no markdown fences):
-{{
-  "headline": "string under 90 chars, declarative not clickbait",
-  "short_summary": "string (~150 words, plain text with Unicode superscripts ¹²³ for citations, NO markdown, NO source list — citations only)",
-  "topic": "world" | "politics" | "economics" | "markets" | "business" | "ai" | "technology" | "startups" | "science" | "opinion"
-}}
+You will submit your output by calling the `publish_short_summary` tool. Do not output anything outside the tool call.
 
 {TOPIC_TAXONOMY}"""
 
@@ -144,13 +195,7 @@ HTML formatting rules for deep_dive_html:
 - For citations, use <sup>1</sup>, <sup>2</sup>, etc. (NOT Unicode superscripts in HTML — use the tag form)
 - Do NOT include <html>, <head>, <body>, or any source list — those are rendered by the page template.
 
-Return ONLY valid JSON (no markdown fences):
-{{
-  "headline": "string under 90 chars",
-  "short_summary": "string ~150 words plain text with Unicode superscripts ¹²³ for citations, for the email skim section",
-  "deep_dive_html": "string (HTML body with <sup>N</sup> citations inline)",
-  "topic": "world" | "politics" | "economics" | "markets" | "business" | "ai" | "technology" | "startups" | "science" | "opinion"
-}}
+You will submit your output by calling the `publish_deep_dive` tool. Do not output anything outside the tool call.
 
 {TOPIC_TAXONOMY}"""
 
@@ -170,55 +215,51 @@ def _cluster_brief(cluster: Cluster) -> str:
     return "\n".join(lines)
 
 
-def _extract_json(text: str) -> dict:
-    text = text.strip()
-    if text.startswith("```"):
-        text = re.sub(r"^```(?:json)?\s*", "", text)
-        text = re.sub(r"\s*```$", "", text)
-    try:
-        return json.loads(text)
-    except json.JSONDecodeError:
-        match = re.search(r"\{.*\}", text, re.DOTALL)
-        if match:
-            return json.loads(match.group(0))
-        raise
-
-
 def _validate_topic(raw: str | None, fallback: str) -> str:
-    if not raw:
-        return fallback if fallback in VALID_TOPICS else "other"
-    raw = raw.strip().lower()
-    if raw in VALID_TOPICS:
-        return raw
+    if raw and raw.strip().lower() in VALID_TOPICS:
+        return raw.strip().lower()
     if fallback in VALID_TOPICS:
         return fallback
-    return "other"
+    return "world"
 
 
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(min=2, max=15))
-def _call_claude(client: Anthropic, model: str, system: str, user: str, max_tokens: int) -> str:
+def _call_tool(
+    client: Anthropic,
+    model: str,
+    system: str,
+    user: str,
+    tool: dict,
+    max_tokens: int,
+) -> dict:
+    """Force Claude to call exactly the named tool, return its input dict."""
     resp = client.messages.create(
         model=model,
         max_tokens=max_tokens,
         system=system,
         messages=[{"role": "user", "content": user}],
+        tools=[tool],
+        tool_choice={"type": "tool", "name": tool["name"]},
     )
-    parts = [b.text for b in resp.content if getattr(b, "type", None) == "text"]
-    return "".join(parts)
+    for block in resp.content:
+        if getattr(block, "type", None) == "tool_use" and block.name == tool["name"]:
+            return dict(block.input)
+    raise RuntimeError(f"Model did not call expected tool '{tool['name']}'")
 
 
 def write_short(client: Anthropic, model: str, cluster: Cluster) -> WrittenStory | None:
     try:
-        raw = _call_claude(client, model, SHORT_SYSTEM, _cluster_brief(cluster), max_tokens=700)
-        data = _extract_json(raw)
+        data = _call_tool(
+            client, model, SHORT_SYSTEM, _cluster_brief(cluster), SHORT_TOOL, max_tokens=900,
+        )
     except Exception as e:
         log.warning("short summary failed for %s: %s", cluster.cluster_id, e)
         return None
     topic = _validate_topic(data.get("topic"), cluster.primary_topic)
     return WrittenStory(
         cluster_id=cluster.cluster_id,
-        headline=data.get("headline", cluster.lead.title)[:120],
-        short_summary=data.get("short_summary", ""),
+        headline=str(data.get("headline", cluster.lead.title))[:120],
+        short_summary=str(data.get("short_summary", "")),
         deep_dive_html=None,
         sources=[
             {"name": a.source_name, "url": a.url, "title": a.title, "index": i}
@@ -231,17 +272,18 @@ def write_short(client: Anthropic, model: str, cluster: Cluster) -> WrittenStory
 
 def write_deep(client: Anthropic, model: str, cluster: Cluster) -> WrittenStory | None:
     try:
-        raw = _call_claude(client, model, DEEP_SYSTEM, _cluster_brief(cluster), max_tokens=5000)
-        data = _extract_json(raw)
+        data = _call_tool(
+            client, model, DEEP_SYSTEM, _cluster_brief(cluster), DEEP_TOOL, max_tokens=6000,
+        )
     except Exception as e:
         log.warning("deep dive failed for %s: %s", cluster.cluster_id, e)
         return None
     topic = _validate_topic(data.get("topic"), cluster.primary_topic)
     return WrittenStory(
         cluster_id=cluster.cluster_id,
-        headline=data.get("headline", cluster.lead.title)[:120],
-        short_summary=data.get("short_summary", ""),
-        deep_dive_html=data.get("deep_dive_html", ""),
+        headline=str(data.get("headline", cluster.lead.title))[:120],
+        short_summary=str(data.get("short_summary", "")),
+        deep_dive_html=str(data.get("deep_dive_html", "")),
         sources=[
             {"name": a.source_name, "url": a.url, "title": a.title, "index": i}
             for i, a in enumerate(cluster.articles, 1)

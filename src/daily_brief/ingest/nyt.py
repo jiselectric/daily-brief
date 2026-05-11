@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import time
 from datetime import datetime
 
 import httpx
@@ -31,8 +32,12 @@ def fetch_nyt_topstories(source: APISource, api_key: str, per_section: int = 20)
     sections = source.sections or ["home"]
     out: list[Article] = []
     seen: set[str] = set()
+    # NYT rate-limit: 5 req/min, 500/day. Pace at ~12s between requests.
+    inter_section_delay = 12.5
     with httpx.Client(timeout=20.0) as client:
-        for section in sections:
+        for i, section in enumerate(sections):
+            if i > 0:
+                time.sleep(inter_section_delay)
             url = NYT_TOPSTORIES.format(section=section)
             try:
                 r = client.get(url, params={"api-key": api_key})

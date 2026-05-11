@@ -145,11 +145,30 @@ def _post_and_get_thread_id(webhook_url: str, content: str, thread_name: str) ->
 
 
 def _send_tldr(webhook_url: str, date_str: str, tldr: list[str]) -> bool:
+    """Forum-friendly: posts the TLDR as a new thread named with today's date.
+
+    First attempt assumes #daily-tldr is a Forum channel (uses thread_name).
+    On 220003 (channel is not a forum), falls back to a normal top-level post.
+    """
     if not tldr:
         return False
-    content = f"# 📰 Daily Brief — {date_str}\n\n**TL;DR**\n" + "\n".join(f"• {line}" for line in tldr)
+    content = f"**TL;DR — {date_str}**\n" + "\n".join(f"• {line}" for line in tldr)
+    thread_name = f"TL;DR — {date_str}"
+
+    # Try forum-style post.
+    chunks = _chunk(content)
+    first_chunk, *rest = chunks
+    thread_id = _post_and_get_thread_id(webhook_url, first_chunk, thread_name)
+    if thread_id:
+        for chunk in rest:
+            _post_thread_followup(webhook_url, thread_id, chunk)
+            time.sleep(0.5)
+        return True
+
+    # Fallback for text channels.
+    log.info("Discord TLDR: forum post failed, falling back to top-level message")
     posted = False
-    for chunk in _chunk(content):
+    for chunk in chunks:
         if _post(webhook_url, chunk):
             posted = True
             time.sleep(0.5)
