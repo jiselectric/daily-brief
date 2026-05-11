@@ -2,9 +2,15 @@
 # Topic tags are HINTS only — Claude makes the final per-article classification.
 # Topic universe (10):
 #   world · politics · economics · markets · business · ai · technology · startups · science · opinion
+#
+# Many of the analyst Substacks below are paid-tier. Their public RSS gives us
+# headlines + ~1-2 paragraphs only. v1.5 (email forwarding) will unlock the full
+# content for subscribers via the user's inbox.
 
 rss:
-  # === World / Politics ===
+  # ============================================================
+  # WORLD
+  # ============================================================
   - id: nyt-homepage
     name: New York Times
     url: https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml
@@ -25,28 +31,79 @@ rss:
     url: http://feeds.bbci.co.uk/news/world/rss.xml
     weight: 0.85
     topics: [world]
-  - id: politico
-    name: Politico
-    url: https://www.politico.com/rss/politicopicks.xml
-    weight: 0.85
-    topics: [politics]
   - id: foreign-affairs
     name: Foreign Affairs
     url: https://www.foreignaffairs.com/rss.xml
     weight: 0.95
     topics: [world, politics, opinion]
+  - id: foreign-policy
+    name: Foreign Policy
+    url: https://foreignpolicy.com/feed/
+    weight: 0.9
+    topics: [world, politics]
+  - id: war-on-the-rocks
+    name: War on the Rocks
+    url: https://warontherocks.com/feed/
+    weight: 0.95
+    topics: [world, politics]
+  - id: lawfare
+    name: Lawfare
+    url: https://www.lawfaremedia.org/feed
+    weight: 0.9
+    topics: [world, politics, opinion]
+  - id: sinocism
+    name: Sinocism (Bill Bishop)
+    url: https://sinocism.com/feed
+    weight: 0.95
+    topics: [world]
+  - id: chinatalk
+    name: ChinaTalk (Jordan Schneider)
+    url: https://www.chinatalk.media/feed
+    weight: 0.9
+    topics: [world, technology, politics]
 
-  # === Economics / Markets / Business ===
+  # ============================================================
+  # POLITICS
+  # ============================================================
+  - id: politico
+    name: Politico
+    url: https://www.politico.com/rss/politicopicks.xml
+    weight: 0.85
+    topics: [politics]
+  - id: bloomberg-politics
+    name: Bloomberg Politics
+    url: https://feeds.bloomberg.com/politics/news.rss
+    weight: 0.9
+    topics: [politics, economics]
+  - id: tangle
+    name: Tangle (Isaac Saul)
+    url: https://www.readtangle.com/rss/
+    weight: 0.85
+    topics: [politics]
+  - id: slow-boring
+    name: Slow Boring (Matt Yglesias)
+    url: https://www.slowboring.com/feed
+    weight: 0.9
+    topics: [politics, economics]
+  - id: the-dispatch
+    name: The Dispatch
+    url: https://thedispatch.com/feed/
+    weight: 0.85
+    topics: [politics]
+  - id: silver-bulletin
+    name: Silver Bulletin (Nate Silver)
+    url: https://www.natesilver.net/feed
+    weight: 0.9
+    topics: [politics]
+
+  # ============================================================
+  # ECONOMICS
+  # ============================================================
   - id: economist-finance
     name: The Economist — Finance & Economics
     url: https://www.economist.com/finance-and-economics/rss.xml
     weight: 1.0
     topics: [economics, markets]
-  - id: economist-business
-    name: The Economist — Business
-    url: https://www.economist.com/business/rss.xml
-    weight: 1.0
-    topics: [business]
   - id: economist-leaders
     name: The Economist — Leaders
     url: https://www.economist.com/leaders/rss.xml
@@ -57,28 +114,172 @@ rss:
     url: https://www.ft.com/rss/home
     weight: 1.0
     topics: [economics, business, markets]
-  - id: wsj-business
-    name: WSJ Business
-    url: https://feeds.a.dj.com/rss/RSSWSJD.xml
-    weight: 1.0
-    topics: [business]
+  - id: marginal-revolution
+    name: Marginal Revolution (Tyler Cowen)
+    url: https://marginalrevolution.com/feed
+    weight: 0.9
+    topics: [economics, opinion]
+  - id: noahpinion
+    name: Noahpinion (Noah Smith)
+    url: https://www.noahpinion.blog/feed
+    weight: 0.95
+    topics: [economics]
+  - id: conversable-economist
+    name: Conversable Economist (Timothy Taylor)
+    url: https://conversableeconomist.com/feed/
+    weight: 0.85
+    topics: [economics]
+  - id: project-syndicate
+    name: Project Syndicate
+    url: https://www.project-syndicate.org/rss
+    weight: 0.85
+    topics: [economics, opinion, world]
+  - id: krugman
+    name: Paul Krugman
+    url: https://paulkrugman.substack.com/feed
+    weight: 0.95
+    topics: [economics, opinion]
+
+  # ============================================================
+  # MARKETS
+  # ============================================================
   - id: wsj-markets
     name: WSJ Markets
     url: https://feeds.a.dj.com/rss/RSSMarketsMain.xml
     weight: 1.0
     topics: [markets, economics]
-  - id: bloomberg-politics
-    name: Bloomberg Politics
-    url: https://feeds.bloomberg.com/politics/news.rss
+  - id: bloomberg-markets
+    name: Bloomberg Markets
+    url: https://feeds.bloomberg.com/markets/news.rss
+    weight: 0.95
+    topics: [markets]
+  - id: bloomberg-opinion
+    name: Bloomberg Opinion (incl. Money Stuff)
+    url: https://feeds.bloomberg.com/opinion/news.rss
+    weight: 0.95
+    topics: [markets, opinion, business]
+  - id: thediff
+    name: The Diff (Byrne Hobart)
+    url: https://www.thediff.co/feed
+    weight: 0.95
+    topics: [markets, business]
+  - id: net-interest
+    name: Net Interest (Marc Rubinstein)
+    url: https://www.netinterest.co/feed
     weight: 0.9
-    topics: [politics, economics]
+    topics: [markets, business]
+  - id: fed-guy
+    name: Fed Guy (Joseph Wang)
+    url: https://fedguy.com/feed
+    weight: 0.85
+    topics: [markets, economics]
+
+  # ============================================================
+  # BUSINESS
+  # ============================================================
+  - id: economist-business
+    name: The Economist — Business
+    url: https://www.economist.com/business/rss.xml
+    weight: 1.0
+    topics: [business]
+  - id: wsj-business
+    name: WSJ Business
+    url: https://feeds.a.dj.com/rss/RSSWSJD.xml
+    weight: 1.0
+    topics: [business]
+  - id: bloomberg-business
+    name: Bloomberg Business
+    url: https://feeds.bloomberg.com/business/news.rss
+    weight: 0.95
+    topics: [business]
   - id: axios
     name: Axios
     url: https://www.axios.com/feeds/feed.rss
     weight: 0.8
     topics: [business, politics]
+  - id: stratechery
+    name: Stratechery (free posts)
+    url: https://stratechery.com/feed/
+    weight: 0.95
+    topics: [technology, business]
+  - id: the-generalist
+    name: The Generalist (Mario Gabriele)
+    url: https://www.generalist.com/feed
+    weight: 0.9
+    topics: [business, startups]
+  - id: bits-about-money
+    name: Bits about Money (patio11)
+    url: https://www.bitsaboutmoney.com/feed
+    weight: 0.9
+    topics: [business, technology]
+  - id: lennys-newsletter
+    name: Lenny's Newsletter
+    url: https://www.lennysnewsletter.com/feed
+    weight: 0.8
+    topics: [business, startups]
 
-  # === AI / Technology / Startups ===
+  # ============================================================
+  # AI
+  # ============================================================
+  - id: import-ai
+    name: Import AI (Jack Clark)
+    url: https://importai.substack.com/feed
+    weight: 0.95
+    topics: [ai]
+  - id: semianalysis
+    name: SemiAnalysis (Dylan Patel)
+    url: https://www.semianalysis.com/feed
+    weight: 0.95
+    topics: [ai, technology]
+  - id: interconnects
+    name: Interconnects (Nathan Lambert)
+    url: https://www.interconnects.ai/feed
+    weight: 0.95
+    topics: [ai]
+  - id: latent-space
+    name: Latent Space (swyx & Alessio)
+    url: https://www.latent.space/feed
+    weight: 0.9
+    topics: [ai]
+  - id: ai-snake-oil
+    name: AI Snake Oil (Narayanan & Kapoor)
+    url: https://www.aisnakeoil.com/feed
+    weight: 0.9
+    topics: [ai, opinion]
+  - id: transformer-news
+    name: Transformer (Shakeel Hashim)
+    url: https://www.transformernews.ai/feed
+    weight: 0.85
+    topics: [ai]
+  - id: epoch-ai
+    name: Epoch AI
+    url: https://epochai.org/blog/feed
+    weight: 0.85
+    topics: [ai]
+  - id: anthropic-news
+    name: Anthropic
+    url: https://www.anthropic.com/news/rss.xml
+    weight: 0.9
+    topics: [ai]
+  - id: openai-news
+    name: OpenAI
+    url: https://openai.com/news/rss.xml
+    weight: 0.9
+    topics: [ai]
+  - id: deepmind
+    name: DeepMind
+    url: https://deepmind.google/blog/rss.xml
+    weight: 0.9
+    topics: [ai]
+  - id: google-research
+    name: Google Research
+    url: https://research.google/blog/rss/
+    weight: 0.85
+    topics: [ai, science]
+
+  # ============================================================
+  # TECHNOLOGY
+  # ============================================================
   - id: hn-front
     name: Hacker News (front page)
     url: https://hnrss.org/frontpage?points=200
@@ -99,26 +300,103 @@ rss:
     url: https://feeds.arstechnica.com/arstechnica/index
     weight: 0.85
     topics: [technology, science]
-  - id: stratechery
-    name: Stratechery (free posts)
-    url: https://stratechery.com/feed/
+  - id: bloomberg-tech
+    name: Bloomberg Technology
+    url: https://feeds.bloomberg.com/technology/news.rss
     weight: 0.95
-    topics: [technology, business]
+    topics: [technology]
+  - id: platformer
+    name: Platformer (Casey Newton)
+    url: https://www.platformer.news/feed
+    weight: 0.9
+    topics: [technology]
+  - id: pragmatic-engineer
+    name: Pragmatic Engineer (Gergely Orosz)
+    url: https://newsletter.pragmaticengineer.com/feed
+    weight: 0.85
+    topics: [technology]
+  - id: daring-fireball
+    name: Daring Fireball (John Gruber)
+    url: https://daringfireball.net/feeds/main
+    weight: 0.8
+    topics: [technology]
+  - id: fabricated-knowledge
+    name: Fabricated Knowledge (Doug O'Laughlin)
+    url: https://www.fabricatedknowledge.com/feed
+    weight: 0.9
+    topics: [technology]
+
+  # ============================================================
+  # STARTUPS
+  # ============================================================
   - id: crunchbase-news
     name: Crunchbase News
     url: https://news.crunchbase.com/feed/
     weight: 0.7
     topics: [startups, business]
-  - id: import-ai
-    name: Import AI (Jack Clark)
-    url: https://importai.substack.com/feed
+  - id: newcomer
+    name: Newcomer (Eric Newcomer)
+    url: https://www.newcomer.co/feed
+    weight: 0.9
+    topics: [startups]
+  - id: a16z
+    name: a16z
+    url: https://a16z.com/feed/
+    weight: 0.7
+    topics: [startups, ai]
+  - id: first-round-review
+    name: First Round Review
+    url: https://review.firstround.com/feed.xml
+    weight: 0.75
+    topics: [startups]
+
+  # ============================================================
+  # SCIENCE
+  # ============================================================
+  - id: quanta
+    name: Quanta Magazine
+    url: https://www.quantamagazine.org/feed/
     weight: 0.95
-    topics: [ai]
-  - id: marginal-revolution
-    name: Marginal Revolution
-    url: https://marginalrevolution.com/feed
+    topics: [science]
+  - id: works-in-progress
+    name: Works in Progress
+    url: https://worksinprogress.co/feed/
+    weight: 0.9
+    topics: [science]
+  - id: construction-physics
+    name: Construction Physics (Brian Potter)
+    url: https://www.construction-physics.com/feed
     weight: 0.85
-    topics: [economics, opinion]
+    topics: [science, technology]
+  - id: asterisk
+    name: Asterisk Magazine
+    url: https://asteriskmag.com/feed
+    weight: 0.85
+    topics: [science, opinion]
+  - id: in-the-pipeline
+    name: In the Pipeline (Derek Lowe)
+    url: https://www.science.org/blog/pipeline/feed
+    weight: 0.85
+    topics: [science]
+
+  # ============================================================
+  # OPINION
+  # ============================================================
+  - id: astral-codex-ten
+    name: Astral Codex Ten (Scott Alexander)
+    url: https://www.astralcodexten.com/feed
+    weight: 0.95
+    topics: [opinion]
+  - id: scholars-stage
+    name: Scholar's Stage (Tanner Greer)
+    url: https://scholars-stage.org/feed/
+    weight: 0.85
+    topics: [opinion, world]
+  - id: persuasion
+    name: Persuasion (Yascha Mounk)
+    url: https://www.persuasion.community/feed
+    weight: 0.8
+    topics: [opinion, politics]
 
 # Pulled via dedicated adapters that need an API key or different shape.
 api:

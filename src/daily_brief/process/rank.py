@@ -58,19 +58,44 @@ def select_for_brief(
     clusters: list[Cluster],
     interests: Interests,
 ) -> tuple[list[Cluster], list[Cluster], list[Cluster]]:
-    """Returns (deep_dive_clusters, short_summary_clusters, headline_only_clusters)."""
+    """Returns (deep_dive_clusters, short_summary_clusters, headline_only_clusters).
+
+    Selection enforces a priority cap: at most `priority_cap` fraction of the
+    written articles (deep + short) come from `priority_topics`. The remainder
+    is filled from non-priority topics to keep editorial diversity. If the
+    non-priority pool is too thin, the shortfall falls back to priority.
+    """
     cfg = interests.brief
-    n_deep = cfg.deep_dives
-    n_short = cfg.short_summaries
+    n_total = cfg.deep_dives + cfg.short_summaries
     n_head = cfg.headlines_only
 
-    # Topic balancing for deep dives so AI/tech doesn't dominate.
+    priority = set(interests.priority_topics)
+    cap_pct = max(0.0, min(1.0, interests.priority_cap))
+    max_priority = int(round(n_total * cap_pct))
+    min_diverse = n_total - max_priority
+
+    priority_clusters = [c for c in clusters if c.primary_topic in priority]
+    diverse_clusters = [c for c in clusters if c.primary_topic not in priority]
+
+    chosen_priority = priority_clusters[:max_priority]
+    chosen_diverse = diverse_clusters[:min_diverse]
+
+    # Backfill from priority if there aren't enough non-priority candidates.
+    if len(chosen_diverse) < min_diverse:
+        shortfall = min_diverse - len(chosen_diverse)
+        chosen_priority = priority_clusters[: max_priority + shortfall]
+
+    selected = chosen_priority + chosen_diverse
+    selected.sort(key=lambda c: c.score, reverse=True)
+    selected = selected[:n_total]
+
+    # Promote top-scored clusters to deep dives, with per-topic cap of 2 so
+    # a single topic can't take >2 of the 5 deep slots.
     deep: list[Cluster] = []
     used_topics: dict[str, int] = {}
     max_per_topic = 2
-
-    for c in clusters:
-        if len(deep) >= n_deep:
+    for c in selected:
+        if len(deep) >= cfg.deep_dives:
             break
         topic = c.primary_topic
         if used_topics.get(topic, 0) >= max_per_topic:
@@ -79,9 +104,16 @@ def select_for_brief(
         used_topics[topic] = used_topics.get(topic, 0) + 1
 
     deep_ids = {c.cluster_id for c in deep}
-    remaining = [c for c in clusters if c.cluster_id not in deep_ids]
-    shorts = remaining[:n_short]
+    shorts = [c for c in selected if c.cluster_id not in deep_ids][: cfg.short_summaries]
     short_ids = {c.cluster_id for c in shorts}
-    heads = [c for c in remaining if c.cluster_id not in short_ids][:n_head]
 
+    remaining = [c for c in clusters if c.cluster_id not in deep_ids and c.cluster_id not in short_ids]
+    heads = remaining[:n_head]
+
+    log.info(
+        "Selected: %d priority / %d diverse (cap %.0f%%)",
+        sum(1 for c in selected if c.primary_topic in priority),
+        sum(1 for c in selected if c.primary_topic not in priority),
+        cap_pct * 100,
+    )
     return deep, shorts, heads

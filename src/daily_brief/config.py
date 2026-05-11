@@ -47,6 +47,8 @@ class BriefConfig(BaseModel):
 
 class Interests(BaseModel):
     topics: dict[str, float]
+    priority_topics: list[str] = Field(default_factory=list)
+    priority_cap: float = 0.80
     boost_keywords: list[str] = Field(default_factory=list)
     exclude_keywords: list[str] = Field(default_factory=list)
     brief: BriefConfig = Field(default_factory=BriefConfig)
