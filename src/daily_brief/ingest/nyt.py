@@ -15,10 +15,11 @@ NYT_TOPSTORIES = "https://api.nytimes.com/svc/topstories/v2/{section}.json"
 
 _SECTION_TOPICS = {
     "home": ["politics", "world", "business"],
-    "world": ["world", "politics"],
+    "world": ["world"],
     "politics": ["politics"],
     "business": ["business", "economics"],
     "technology": ["technology"],
+    "science": ["science"],
     "us": ["politics"],
 }
 

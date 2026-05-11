@@ -1,28 +1,30 @@
 # Source weights influence ranking (higher authority = higher weight).
-# Topic tags are used for filtering and topic balance.
+# Topic tags are HINTS only — Claude makes the final per-article classification.
+# Topic universe (10):
+#   world · politics · economics · markets · business · ai · technology · startups · science · opinion
 
 rss:
-  # === General / Politics / Geopolitics ===
+  # === World / Politics ===
   - id: nyt-homepage
     name: New York Times
     url: https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml
     weight: 1.0
-    topics: [politics, business, world]
+    topics: [world, politics, business]
   - id: reuters-world
     name: Reuters World
     url: https://feeds.reuters.com/Reuters/worldNews
     weight: 0.95
-    topics: [politics, world]
+    topics: [world]
   - id: ap-top
     name: AP Top News
     url: https://rsshub.app/apnews/topics/apf-topnews
     weight: 0.9
-    topics: [politics, world]
+    topics: [world, politics]
   - id: bbc-world
     name: BBC World
     url: http://feeds.bbci.co.uk/news/world/rss.xml
     weight: 0.85
-    topics: [politics, world]
+    topics: [world]
   - id: politico
     name: Politico
     url: https://www.politico.com/rss/politicopicks.xml
@@ -32,14 +34,14 @@ rss:
     name: Foreign Affairs
     url: https://www.foreignaffairs.com/rss.xml
     weight: 0.95
-    topics: [politics, world]
+    topics: [world, politics, opinion]
 
-  # === Economics / Business / Markets ===
+  # === Economics / Markets / Business ===
   - id: economist-finance
     name: The Economist — Finance & Economics
     url: https://www.economist.com/finance-and-economics/rss.xml
     weight: 1.0
-    topics: [economics, business]
+    topics: [economics, markets]
   - id: economist-business
     name: The Economist — Business
     url: https://www.economist.com/business/rss.xml
@@ -49,12 +51,12 @@ rss:
     name: The Economist — Leaders
     url: https://www.economist.com/leaders/rss.xml
     weight: 0.95
-    topics: [politics, economics, business]
+    topics: [opinion]
   - id: ft-home
     name: Financial Times
     url: https://www.ft.com/rss/home
     weight: 1.0
-    topics: [economics, business]
+    topics: [economics, business, markets]
   - id: wsj-business
     name: WSJ Business
     url: https://feeds.a.dj.com/rss/RSSWSJD.xml
@@ -64,7 +66,7 @@ rss:
     name: WSJ Markets
     url: https://feeds.a.dj.com/rss/RSSMarketsMain.xml
     weight: 1.0
-    topics: [economics, business]
+    topics: [markets, economics]
   - id: bloomberg-politics
     name: Bloomberg Politics
     url: https://feeds.bloomberg.com/politics/news.rss
@@ -76,7 +78,7 @@ rss:
     weight: 0.8
     topics: [business, politics]
 
-  # === AI / Tech / Startups ===
+  # === AI / Technology / Startups ===
   - id: hn-front
     name: Hacker News (front page)
     url: https://hnrss.org/frontpage?points=200
@@ -96,12 +98,12 @@ rss:
     name: Ars Technica
     url: https://feeds.arstechnica.com/arstechnica/index
     weight: 0.85
-    topics: [technology]
+    topics: [technology, science]
   - id: stratechery
     name: Stratechery (free posts)
     url: https://stratechery.com/feed/
     weight: 0.95
-    topics: [technology, business, startups]
+    topics: [technology, business]
   - id: crunchbase-news
     name: Crunchbase News
     url: https://news.crunchbase.com/feed/
@@ -116,14 +118,14 @@ rss:
     name: Marginal Revolution
     url: https://marginalrevolution.com/feed
     weight: 0.85
-    topics: [economics]
+    topics: [economics, opinion]
 
 # Pulled via dedicated adapters that need an API key or different shape.
 api:
   - id: nyt-topstories
     name: NYT Top Stories
     adapter: nyt
-    sections: [home, world, politics, business, technology]
+    sections: [home, world, politics, business, technology, science]
     weight: 1.0
   - id: hackernews-top
     name: Hacker News (API)

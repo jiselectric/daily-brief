@@ -48,7 +48,7 @@ def fetch_hackernews(source: APISource) -> list[Article]:
                     url=url,
                     summary=f"HN score {item.get('score', 0)} · {item.get('descendants', 0)} comments",
                     published=published,
-                    topics=["technology", "ai", "startups"],
+                    topics=["technology"],  # Claude will reclassify to ai/startups/science where appropriate
                 )
             )
             if len(out) >= limit:

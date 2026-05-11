@@ -103,7 +103,7 @@ def run(*, dry_run: bool, skip_send: bool) -> int:
         deep_dive_base_url = os.environ.get("DEEP_DIVE_BASE_URL")  # set by GH Pages workflow
 
         log.info("=== Writing static pages ===")
-        write_static_pages(out_dir, deep_stories, settings.timezone)
+        write_static_pages(out_dir, deep_stories, short_stories, settings.timezone)
 
         run_stats = (
             f"{len(articles)} articles · {len(clusters)} clusters · "

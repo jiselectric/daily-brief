@@ -93,6 +93,8 @@ jobs:
           RESEND_FROM: ${{ vars.RESEND_FROM || 'Daily Brief <onboarding@resend.dev>' }}
           TO_EMAIL: ${{ secrets.TO_EMAIL }}
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_WEBHOOK_TLDR: ${{ secrets.DISCORD_WEBHOOK_TLDR }}
+          DISCORD_WEBHOOK_BRIEF: ${{ secrets.DISCORD_WEBHOOK_BRIEF }}
           TIMEZONE: America/Los_Angeles
           DEEP_DIVE_BASE_URL: ${{ vars.DEEP_DIVE_BASE_URL }}
         run: |

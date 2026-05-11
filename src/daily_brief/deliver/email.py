@@ -20,6 +20,36 @@ _env = Environment(
     autoescape=select_autoescape(["html", "j2"]),
 )
 
+# Display order for topic sections — mirrors Economist/WSJ/NYT editorial flow.
+TOPIC_ORDER = [
+    "world", "politics",
+    "economics", "markets", "business",
+    "ai", "technology", "startups",
+    "science", "opinion",
+]
+TOPIC_LABELS = {
+    "world": "World",
+    "politics": "Politics",
+    "economics": "Economics",
+    "markets": "Markets",
+    "business": "Business",
+    "ai": "AI",
+    "technology": "Technology",
+    "startups": "Startups",
+    "science": "Science",
+    "opinion": "Opinion",
+}
+
+
+def _group_by_topic(stories: list[WrittenStory]) -> list[tuple[str, list[WrittenStory]]]:
+    buckets: dict[str, list[WrittenStory]] = {}
+    for s in stories:
+        buckets.setdefault(s.topic, []).append(s)
+    # Inside each bucket, deep dives first.
+    for items in buckets.values():
+        items.sort(key=lambda s: (not s.is_deep_dive,))
+    return [(TOPIC_LABELS.get(t, t.title()), buckets[t]) for t in TOPIC_ORDER if t in buckets]
+
 
 def render_email(
     *,
@@ -33,11 +63,11 @@ def render_email(
 ) -> tuple[str, str]:
     template = _env.get_template("email.html.j2")
     date_str = datetime.now(ZoneInfo(timezone_name)).strftime("%A, %B %d, %Y")
+    grouped = _group_by_topic(deep_stories + short_stories)
     html = template.render(
         date_str=date_str,
         timezone=timezone_name,
-        deep_stories=deep_stories,
-        short_stories=short_stories,
+        grouped=grouped,
         headlines=headline_articles,
         tldr=tldr,
         run_stats=run_stats,

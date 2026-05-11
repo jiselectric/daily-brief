@@ -59,7 +59,9 @@ class Settings(BaseModel):
     resend_api_key: str | None = None
     resend_from: str = "Daily Brief <onboarding@resend.dev>"
     to_email: str | None = None
-    discord_webhook_url: str | None = None
+    discord_webhook_url: str | None = None     # legacy single-channel webhook
+    discord_webhook_tldr: str | None = None    # #daily-tldr channel
+    discord_webhook_brief: str | None = None   # #daily-brief channel (threads created per day)
     timezone: str = "America/Los_Angeles"
 
 
@@ -88,5 +90,7 @@ def load_settings() -> Settings:
         resend_from=os.environ.get("RESEND_FROM", "Daily Brief <onboarding@resend.dev>"),
         to_email=os.environ.get("TO_EMAIL") or None,
         discord_webhook_url=os.environ.get("DISCORD_WEBHOOK_URL") or None,
+        discord_webhook_tldr=os.environ.get("DISCORD_WEBHOOK_TLDR") or None,
+        discord_webhook_brief=os.environ.get("DISCORD_WEBHOOK_BRIEF") or None,
         timezone=os.environ.get("TIMEZONE", "America/Los_Angeles"),
     )
